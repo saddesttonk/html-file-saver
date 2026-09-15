@@ -24,7 +24,6 @@
             height: 100vh;
         }
 
-        /* Sidebar */
         .sidebar {
             width: 320px;
             background-color: #252526;
@@ -83,12 +82,14 @@
             flex-shrink: 0;
         }
 
-        .file-input-wrapper {
-            position: relative;
-            display: block;
+        .upload-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
         }
 
-        .file-input-label {
+        .file-input-label, .folder-btn {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,6 +97,7 @@
             padding: 12px;
             background-color: #0e639c;
             color: white;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -103,7 +105,7 @@
             font-size: 14px;
         }
 
-        .file-input-label:hover {
+        .file-input-label:hover, .folder-btn:hover {
             background-color: #1177bb;
         }
 
@@ -117,12 +119,65 @@
             padding: 8px;
         }
 
+        .folder-item {
+            padding: 12px;
+            background-color: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .folder-item:hover {
+            background-color: #3e3e42;
+        }
+
+        .folder-item.expanded {
+            background-color: #3e3e42;
+        }
+
+        .folder-toggle {
+            font-size: 12px;
+            width: 16px;
+        }
+
+        .folder-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .folder-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .folder-delete-btn {
+            background: none;
+            border: none;
+            color: #858585;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .folder-delete-btn:hover {
+            background-color: #d13438;
+            color: white;
+        }
+
         .file-item {
             padding: 12px;
             background-color: #2d2d30;
             border: 1px solid #3e3e42;
             border-radius: 4px;
             margin-bottom: 8px;
+            margin-left: 24px;
             cursor: pointer;
             transition: background-color 0.2s, border-color 0.2s;
             display: flex;
@@ -179,7 +234,6 @@
             color: white;
         }
 
-        /* Main content area */
         .content {
             flex: 1;
             display: flex;
@@ -267,7 +321,6 @@
             padding: 32px;
         }
 
-        /* Fullscreen styles */
         #htmlFrame:fullscreen {
             width: 100vw;
             height: 100vh;
@@ -279,7 +332,6 @@
             border-radius: 0;
         }
 
-        /* Scrollbar styling */
         .file-list::-webkit-scrollbar {
             width: 8px;
         }
@@ -297,7 +349,6 @@
             background-color: #5c5c5c;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
                 position: absolute;
@@ -349,11 +400,94 @@
         .error-message.show {
             display: block;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            background-color: #3e3e42;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-family: inherit;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .modal-btn-primary {
+            background-color: #0e639c;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background-color: #1177bb;
+        }
+
+        .modal-btn-secondary {
+            background-color: #3e3e42;
+            color: #e0e0e0;
+        }
+
+        .modal-btn-secondary:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2>Files</h2>
@@ -364,10 +498,13 @@
 
             <div class="upload-section">
                 <div class="error-message" id="errorMessage"></div>
-                <label class="file-input-label">
-                    Upload HTML
-                    <input type="file" id="fileInput" accept=".html,.htm" multiple>
-                </label>
+                <div class="upload-controls">
+                    <label class="file-input-label">
+                        Upload
+                        <input type="file" id="fileInput" accept=".html,.htm" multiple>
+                    </label>
+                    <button class="folder-btn" id="newFolderBtn">+ Folder</button>
+                </div>
             </div>
 
             <div class="file-list" id="fileList">
@@ -375,7 +512,6 @@
             </div>
         </div>
 
-        <!-- Main content -->
         <div class="content">
             <div class="content-header">
                 <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
@@ -393,8 +529,30 @@
             <div class="frame-container">
                 <div class="frame-wrapper">
                     <div class="placeholder">Upload an HTML file to get started</div>
-                    <iframe id="htmlFrame" style="display: none;" allow="keyboard-event; pointer-lock; fullscreen"></iframe>
+                    <iframe id="htmlFrame" style="display: none;" allow="keyboard *; pointer-lock *; fullscreen *; cross-origin-isolated" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation allow-pointer-lock"></iframe>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="folderModal">
+        <div class="modal-content">
+            <div class="modal-header">Create New Folder</div>
+            <input type="text" class="modal-input" id="folderNameInput" placeholder="Folder name" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" id="cancelFolderBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="createFolderBtn">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="labelModal">
+        <div class="modal-content">
+            <div class="modal-header">Save File As</div>
+            <input type="text" class="modal-input" id="labelInput" placeholder="Label name" autocomplete="off">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" id="cancelLabelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="saveLabelBtn">Save</button>
             </div>
         </div>
     </div>
@@ -410,16 +568,21 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const errorMessage = document.getElementById('errorMessage');
+        const newFolderBtn = document.getElementById('newFolderBtn');
+        const folderModal = document.getElementById('folderModal');
+        const labelModal = document.getElementById('labelModal');
+        const folderNameInput = document.getElementById('folderNameInput');
+        const labelInput = document.getElementById('labelInput');
 
-        // Storage key for IndexedDB
         const DB_NAME = 'HTMLFileSaverDB';
         const STORE_NAME = 'files';
         let db;
+        let currentFileId = null;
+        let pendingFolderId = null;
 
-        // Initialize IndexedDB
-        function initDB() {
+        async function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
+                const request = indexedDB.open(DB_NAME, 2);
 
                 request.onerror = () => reject(request.error);
                 request.onsuccess = () => {
@@ -436,15 +599,17 @@
             });
         }
 
-        // Save file to IndexedDB
-        async function saveFile(name, content) {
+        async function saveFile(name, content, folderId = null, label = null) {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
                 const file = {
                     name,
                     content,
+                    label: label || name,
                     size: new Blob([content]).size,
+                    folderId: folderId || null,
+                    type: 'file',
                     timestamp: Date.now()
                 };
 
@@ -454,8 +619,24 @@
             });
         }
 
-        // Get all files from IndexedDB
-        async function getAllFiles() {
+        async function createFolder(folderName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const folder = {
+                    name: folderName,
+                    type: 'folder',
+                    expanded: true,
+                    timestamp: Date.now()
+                };
+
+                const request = store.add(folder);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+            });
+        }
+
+        async function getAllItems() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readonly');
                 const store = transaction.objectStore(STORE_NAME);
@@ -466,8 +647,7 @@
             });
         }
 
-        // Get file by ID
-        async function getFileById(id) {
+        async function getItemById(id) {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readonly');
                 const store = transaction.objectStore(STORE_NAME);
@@ -478,8 +658,24 @@
             });
         }
 
-        // Delete file from IndexedDB
-        async function deleteFile(id) {
+        async function updateItem(id, updates) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                const getRequest = store.get(id);
+                getRequest.onsuccess = () => {
+                    const item = getRequest.result;
+                    const updated = { ...item, ...updates };
+                    const putRequest = store.put(updated);
+                    putRequest.onerror = () => reject(putRequest.error);
+                    putRequest.onsuccess = () => resolve(updated);
+                };
+                getRequest.onerror = () => reject(getRequest.error);
+            });
+        }
+
+        async function deleteItem(id) {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
@@ -490,7 +686,6 @@
             });
         }
 
-        // Format file size
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 B';
             const k = 1024;
@@ -499,7 +694,6 @@
             return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
         }
 
-        // Show error message
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.add('show');
@@ -508,68 +702,108 @@
             }, 5000);
         }
 
-        // Render file list
         async function renderFileList() {
-            const files = await getAllFiles();
+            const items = await getAllItems();
             fileList.innerHTML = '';
 
-            if (files.length === 0) {
+            if (items.length === 0) {
                 fileList.innerHTML = '<div class="placeholder">No files uploaded yet</div>';
                 return;
             }
 
-            files.forEach(file => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <div class="file-item-info">
-                        <div class="file-item-name">${file.name}</div>
-                        <div class="file-item-size">${formatFileSize(file.size)}</div>
+            const folders = items.filter(i => i.type === 'folder');
+            const rootFiles = items.filter(i => i.type === 'file' && !i.folderId);
+
+            folders.forEach(folder => {
+                const folderItem = document.createElement('div');
+                folderItem.className = 'folder-item' + (folder.expanded ? ' expanded' : '');
+                folderItem.innerHTML = `
+                    <span class="folder-toggle">${folder.expanded ? '▼' : '▶'}</span>
+                    <span class="folder-name">${folder.name}</span>
+                    <div class="folder-actions">
+                        <button class="folder-delete-btn" data-id="${folder.id}">×</button>
                     </div>
-                    <button class="file-item-delete" data-id="${file.id}">×</button>
                 `;
 
-                fileItem.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('file-item-delete')) {
-                        return;
-                    }
-                    loadFile(file.id, fileItem);
-                });
-
-                const deleteBtn = fileItem.querySelector('.file-item-delete');
-                deleteBtn.addEventListener('click', async (e) => {
+                folderItem.querySelector('.folder-toggle').addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    await deleteFile(file.id);
-                    renderFileList();
-                    htmlFrame.style.display = 'none';
-                    htmlFrame.parentElement.querySelector('.placeholder').style.display = 'flex';
-                    currentFileNameEl.textContent = 'HTML File Saver';
-                    fullscreenBtn.disabled = true;
-                    downloadBtn.disabled = true;
+                    await updateItem(folder.id, { expanded: !folder.expanded });
+                    await renderFileList();
                 });
 
-                fileList.appendChild(fileItem);
+                folderItem.querySelector('.folder-delete-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await deleteItem(folder.id);
+                    const folderFiles = items.filter(i => i.folderId === folder.id);
+                    for (const file of folderFiles) {
+                        await deleteItem(file.id);
+                    }
+                    await renderFileList();
+                });
+
+                fileList.appendChild(folderItem);
+
+                if (folder.expanded) {
+                    const folderFiles = items.filter(i => i.folderId === folder.id);
+                    folderFiles.forEach(file => {
+                        renderFileItem(file, fileList);
+                    });
+                }
+            });
+
+            rootFiles.forEach(file => {
+                renderFileItem(file, fileList);
             });
         }
 
-        // Load file into iframe
+        function renderFileItem(file, parent) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-item-info">
+                    <div class="file-item-name">${file.label}</div>
+                    <div class="file-item-size">${formatFileSize(file.size)}</div>
+                </div>
+                <button class="file-item-delete" data-id="${file.id}">×</button>
+            `;
+
+            fileItem.addEventListener('click', (e) => {
+                if (e.target.classList.contains('file-item-delete')) {
+                    return;
+                }
+                loadFile(file.id, fileItem);
+            });
+
+            fileItem.querySelector('.file-item-delete').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await deleteItem(file.id);
+                await renderFileList();
+                htmlFrame.style.display = 'none';
+                htmlFrame.parentElement.querySelector('.placeholder').style.display = 'flex';
+                currentFileNameEl.textContent = 'HTML File Saver';
+                fullscreenBtn.disabled = true;
+                downloadBtn.disabled = true;
+                currentFileId = null;
+            });
+
+            parent.appendChild(fileItem);
+        }
+
         async function loadFile(id, fileItem) {
-            const file = await getFileById(id);
+            const file = await getItemById(id);
             if (!file) return;
 
-            // Update active state
+            currentFileId = id;
             document.querySelectorAll('.file-item').forEach(item => {
                 item.classList.remove('active');
             });
             fileItem?.classList.add('active');
 
-            // Update UI
-            currentFileNameEl.textContent = file.name;
+            currentFileNameEl.textContent = file.label;
             const placeholder = htmlFrame.parentElement.querySelector('.placeholder');
             placeholder.style.display = 'none';
             htmlFrame.style.display = 'block';
 
-            // Load content
             const blob = new Blob([file.content], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             htmlFrame.src = url;
@@ -577,19 +811,16 @@
             fullscreenBtn.disabled = false;
             downloadBtn.disabled = false;
 
-            // Close sidebar on mobile
             if (window.innerWidth <= 768) {
                 sidebar.classList.add('collapsed');
             }
         }
 
-        // Handle file upload
         fileInput.addEventListener('change', async (e) => {
             const files = Array.from(e.target.files);
 
             for (const file of files) {
-                // Check file size (1 GB limit per file)
-                const maxSize = 1024 * 1024 * 1024; // 1 GB
+                const maxSize = 1024 * 1024 * 1024;
                 if (file.size > maxSize) {
                     showError(`File "${file.name}" exceeds 1 GB limit`);
                     continue;
@@ -597,17 +828,17 @@
 
                 try {
                     const content = await file.text();
-                    await saveFile(file.name, content);
+                    await saveFile(file.name, content, pendingFolderId);
                 } catch (error) {
                     showError(`Failed to load file "${file.name}": ${error.message}`);
                 }
             }
 
             fileInput.value = '';
+            pendingFolderId = null;
             await renderFileList();
         });
 
-        // Toggle sidebar
         toggleSidebarBtn.addEventListener('click', () => {
             sidebar.classList.toggle('collapsed');
         });
@@ -616,31 +847,93 @@
             sidebar.classList.remove('collapsed');
         });
 
-        // Fullscreen button
         fullscreenBtn.addEventListener('click', () => {
             if (htmlFrame.requestFullscreen) {
-                htmlFrame.requestFullscreen();
+                htmlFrame.requestFullscreen().catch(err => console.error('Fullscreen error:', err));
             } else if (htmlFrame.webkitRequestFullscreen) {
                 htmlFrame.webkitRequestFullscreen();
             }
         });
 
-        // Download button
         downloadBtn.addEventListener('click', async () => {
-            const fileName = currentFileNameEl.textContent;
-            const files = await getAllFiles();
-            const file = files.find(f => f.name === fileName);
+            if (!currentFileId) return;
+            const file = await getItemById(currentFileId);
+            if (!file) return;
 
-            if (file) {
-                const a = document.createElement('a');
-                const blob = new Blob([file.content], { type: 'text/html' });
-                a.href = URL.createObjectURL(blob);
-                a.download = file.name;
-                a.click();
+            const a = document.createElement('a');
+            const blob = new Blob([file.content], { type: 'text/html' });
+            a.href = URL.createObjectURL(blob);
+            a.download = file.name;
+            a.click();
+        });
+
+        newFolderBtn.addEventListener('click', () => {
+            folderNameInput.value = '';
+            folderModal.classList.add('show');
+            folderNameInput.focus();
+        });
+
+        document.getElementById('createFolderBtn').addEventListener('click', async () => {
+            const name = folderNameInput.value.trim();
+            if (!name) {
+                showError('Folder name cannot be empty');
+                return;
+            }
+            await createFolder(name);
+            folderModal.classList.remove('show');
+            await renderFileList();
+        });
+
+        document.getElementById('cancelFolderBtn').addEventListener('click', () => {
+            folderModal.classList.remove('show');
+        });
+
+        folderNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('createFolderBtn').click();
             }
         });
 
-        // Initialize on load
+        document.getElementById('cancelLabelBtn').addEventListener('click', () => {
+            labelModal.classList.remove('show');
+        });
+
+        document.getElementById('saveLabelBtn').addEventListener('click', async () => {
+            const label = labelInput.value.trim();
+            if (!label) {
+                showError('Label cannot be empty');
+                return;
+            }
+            if (currentFileId) {
+                await updateItem(currentFileId, { label });
+                await renderFileList();
+                currentFileNameEl.textContent = label;
+            }
+            labelModal.classList.remove('show');
+        });
+
+        labelInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('saveLabelBtn').click();
+            }
+        });
+
+        downloadBtn.addEventListener('contextmenu', async (e) => {
+            e.preventDefault();
+            if (!currentFileId) return;
+            const file = await getItemById(currentFileId);
+            if (file) {
+                labelInput.value = file.label;
+                labelModal.classList.add('show');
+                labelInput.focus();
+            }
+        });
+
+        // Focus iframe on click to ensure keyboard events reach it
+        htmlFrame.addEventListener('load', () => {
+            htmlFrame.focus();
+        });
+
         async function init() {
             try {
                 await initDB();
