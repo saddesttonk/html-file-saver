@@ -356,7 +356,7 @@
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h2>📁 Files</h2>
+                <h2>Files</h2>
                 <button class="toggle-sidebar-btn" id="toggleSidebarBtn" title="Hide sidebar">
                     ◀
                 </button>
@@ -365,7 +365,7 @@
             <div class="upload-section">
                 <div class="error-message" id="errorMessage"></div>
                 <label class="file-input-label">
-                    📤 Upload HTML
+                    Upload HTML
                     <input type="file" id="fileInput" accept=".html,.htm" multiple>
                 </label>
             </div>
@@ -385,15 +385,15 @@
                     <h1 id="currentFileName">HTML File Saver</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="header-btn" id="fullscreenBtn" disabled>🖥️ Fullscreen</button>
-                    <button class="header-btn" id="downloadBtn" disabled>⬇️ Download</button>
+                    <button class="header-btn" id="fullscreenBtn" disabled>Fullscreen</button>
+                    <button class="header-btn" id="downloadBtn" disabled>Download</button>
                 </div>
             </div>
 
             <div class="frame-container">
                 <div class="frame-wrapper">
                     <div class="placeholder">Upload an HTML file to get started</div>
-                    <iframe id="htmlFrame" style="display: none;"></iframe>
+                    <iframe id="htmlFrame" style="display: none;" allow="keyboard-event; pointer-lock; fullscreen"></iframe>
                 </div>
             </div>
         </div>
