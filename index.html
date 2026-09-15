@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML File Saver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background-color: #252526;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, width 0.3s ease;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            min-width: 0;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .toggle-sidebar-btn {
+            background: none;
+            border: none;
+            color: #858585;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .toggle-sidebar-btn:hover {
+            background-color: #3e3e42;
+            color: #e0e0e0;
+        }
+
+        .upload-section {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e42;
+            flex-shrink: 0;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background-color: #0e639c;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .file-input-label:hover {
+            background-color: #1177bb;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .file-item {
+            padding: 12px;
+            background-color: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-item:hover {
+            background-color: #3e3e42;
+            border-color: #007acc;
+        }
+
+        .file-item.active {
+            background-color: #007acc;
+            border-color: #007acc;
+        }
+
+        .file-item-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .file-item-name {
+            font-weight: 500;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item-size {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .file-item-delete {
+            background: none;
+            border: none;
+            color: #858585;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s, color 0.2s;
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+
+        .file-item-delete:hover {
+            background-color: #d13438;
+            color: white;
+        }
+
+        /* Main content area */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #1e1e1e;
+        }
+
+        .content-header {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .content-header h1 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-btn {
+            padding: 8px 16px;
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .header-btn:hover {
+            background-color: #1177bb;
+        }
+
+        .header-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .frame-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1e1e1e;
+            padding: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .frame-wrapper {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #htmlFrame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #858585;
+            font-size: 16px;
+            text-align: center;
+            padding: 32px;
+        }
+
+        /* Fullscreen styles */
+        #htmlFrame:fullscreen {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .frame-wrapper:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+        }
+
+        /* Scrollbar styling */
+        .file-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background-color: #252526;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background-color: #464647;
+            border-radius: 4px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb:hover {
+            background-color: #5c5c5c;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                height: 100%;
+                left: 0;
+                top: 0;
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+        }
+
+        .toggle-main-btn {
+            background: none;
+            border: none;
+            color: #858585;
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .toggle-main-btn:hover {
+            background-color: #3e3e42;
+            color: #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .toggle-main-btn {
+                display: flex;
+            }
+        }
+
+        .error-message {
+            background-color: #d13438;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>📁 Files</h2>
+                <button class="toggle-sidebar-btn" id="toggleSidebarBtn" title="Hide sidebar">
+                    ◀
+                </button>
+            </div>
+
+            <div class="upload-section">
+                <div class="error-message" id="errorMessage"></div>
+                <label class="file-input-label">
+                    📤 Upload HTML
+                    <input type="file" id="fileInput" accept=".html,.htm" multiple>
+                </label>
+            </div>
+
+            <div class="file-list" id="fileList">
+                <div class="placeholder">No files uploaded yet</div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="content">
+            <div class="content-header">
+                <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                    <button class="toggle-main-btn" id="toggleMainBtn" title="Show sidebar">
+                        ☰
+                    </button>
+                    <h1 id="currentFileName">HTML File Saver</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" id="fullscreenBtn" disabled>🖥️ Fullscreen</button>
+                    <button class="header-btn" id="downloadBtn" disabled>⬇️ Download</button>
+                </div>
+            </div>
+
+            <div class="frame-container">
+                <div class="frame-wrapper">
+                    <div class="placeholder">Upload an HTML file to get started</div>
+                    <iframe id="htmlFrame" style="display: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+        const toggleMainBtn = document.getElementById('toggleMainBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const htmlFrame = document.getElementById('htmlFrame');
+        const currentFileNameEl = document.getElementById('currentFileName');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Storage key for IndexedDB
+        const DB_NAME = 'HTMLFileSaverDB';
+        const STORE_NAME = 'files';
+        let db;
+
+        // Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve();
+                };
+
+                request.onupgradeneeded = (e) => {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        // Save file to IndexedDB
+        async function saveFile(name, content) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const file = {
+                    name,
+                    content,
+                    size: new Blob([content]).size,
+                    timestamp: Date.now()
+                };
+
+                const request = store.add(file);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+            });
+        }
+
+        // Get all files from IndexedDB
+        async function getAllFiles() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+            });
+        }
+
+        // Get file by ID
+        async function getFileById(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+            });
+        }
+
+        // Delete file from IndexedDB
+        async function deleteFile(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve();
+            });
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // Render file list
+        async function renderFileList() {
+            const files = await getAllFiles();
+            fileList.innerHTML = '';
+
+            if (files.length === 0) {
+                fileList.innerHTML = '<div class="placeholder">No files uploaded yet</div>';
+                return;
+            }
+
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-item-info">
+                        <div class="file-item-name">${file.name}</div>
+                        <div class="file-item-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button class="file-item-delete" data-id="${file.id}">×</button>
+                `;
+
+                fileItem.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('file-item-delete')) {
+                        return;
+                    }
+                    loadFile(file.id, fileItem);
+                });
+
+                const deleteBtn = fileItem.querySelector('.file-item-delete');
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await deleteFile(file.id);
+                    renderFileList();
+                    htmlFrame.style.display = 'none';
+                    htmlFrame.parentElement.querySelector('.placeholder').style.display = 'flex';
+                    currentFileNameEl.textContent = 'HTML File Saver';
+                    fullscreenBtn.disabled = true;
+                    downloadBtn.disabled = true;
+                });
+
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        // Load file into iframe
+        async function loadFile(id, fileItem) {
+            const file = await getFileById(id);
+            if (!file) return;
+
+            // Update active state
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            fileItem?.classList.add('active');
+
+            // Update UI
+            currentFileNameEl.textContent = file.name;
+            const placeholder = htmlFrame.parentElement.querySelector('.placeholder');
+            placeholder.style.display = 'none';
+            htmlFrame.style.display = 'block';
+
+            // Load content
+            const blob = new Blob([file.content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            htmlFrame.src = url;
+
+            fullscreenBtn.disabled = false;
+            downloadBtn.disabled = false;
+
+            // Close sidebar on mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+            }
+        }
+
+        // Handle file upload
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+
+            for (const file of files) {
+                // Check file size (1 GB limit per file)
+                const maxSize = 1024 * 1024 * 1024; // 1 GB
+                if (file.size > maxSize) {
+                    showError(`File "${file.name}" exceeds 1 GB limit`);
+                    continue;
+                }
+
+                try {
+                    const content = await file.text();
+                    await saveFile(file.name, content);
+                } catch (error) {
+                    showError(`Failed to load file "${file.name}": ${error.message}`);
+                }
+            }
+
+            fileInput.value = '';
+            await renderFileList();
+        });
+
+        // Toggle sidebar
+        toggleSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        toggleMainBtn.addEventListener('click', () => {
+            sidebar.classList.remove('collapsed');
+        });
+
+        // Fullscreen button
+        fullscreenBtn.addEventListener('click', () => {
+            if (htmlFrame.requestFullscreen) {
+                htmlFrame.requestFullscreen();
+            } else if (htmlFrame.webkitRequestFullscreen) {
+                htmlFrame.webkitRequestFullscreen();
+            }
+        });
+
+        // Download button
+        downloadBtn.addEventListener('click', async () => {
+            const fileName = currentFileNameEl.textContent;
+            const files = await getAllFiles();
+            const file = files.find(f => f.name === fileName);
+
+            if (file) {
+                const a = document.createElement('a');
+                const blob = new Blob([file.content], { type: 'text/html' });
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name;
+                a.click();
+            }
+        });
+
+        // Initialize on load
+        async function init() {
+            try {
+                await initDB();
+                await renderFileList();
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                showError('Failed to initialize storage');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
